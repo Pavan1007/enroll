@@ -46,6 +46,7 @@ class Insured::FamiliesController < FamiliesController
     @tab = params['tab']
     respond_to do |format|
       format.html
+      format.json { render json: {role: @employee_role, hbx_enrollments: @hbx_enrollments, plans: @hbx_enrollments.map {|e| e.plan}, family: @family}}
     end
   end
 
