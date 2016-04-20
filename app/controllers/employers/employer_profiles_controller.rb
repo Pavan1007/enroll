@@ -136,6 +136,11 @@ class Employers::EmployerProfilesController < Employers::EmployersController
     @employer_profile = @organization.employer_profile
     @staff = Person.staff_for_employer_including_pending(@employer_profile)
     @add_staff = params[:add_staff]
+
+    respond_to do |format|
+      format.html
+      format.json { render json: { organization: @organization, employer_profile: @employer_profile}}
+    end
   end
 
   def create
