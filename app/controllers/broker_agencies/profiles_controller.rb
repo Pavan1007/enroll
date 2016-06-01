@@ -144,6 +144,11 @@ class BrokerAgencies::ProfilesController < ApplicationController
 
     @broker_role = current_user.person.broker_role || nil
     @general_agency_profiles = GeneralAgencyProfile.all_by_broker_role(@broker_role)
+
+    respond_to do |format|
+       format.js
+       format.json
+    end
   end
 
   def general_agency_index
