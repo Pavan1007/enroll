@@ -2,7 +2,7 @@ class BrokerAgencies::ProfilesController < ApplicationController
   before_action :check_broker_agency_staff_role, only: [:new, :create]
   before_action :check_admin_staff_role, only: [:index]
   before_action :find_hbx_profile, only: [:index]
-  before_action :find_broker_agency_profile, only: [:show, :edit, :update, :employers, :assign, :update_assign, :manage_employers, :general_agency_index, :clear_assign_for_employer]
+  before_action :find_broker_agency_profile, only: [:show, :edit, :update, :employers, :employers_api, :assign, :update_assign, :manage_employers, :general_agency_index, :clear_assign_for_employer]
   before_action :set_current_person, only: [:staff_index]
   before_action :check_general_agency_profile_permissions_assign, only: [:assign, :update_assign, :clear_assign_for_employer]
 
@@ -145,10 +145,65 @@ class BrokerAgencies::ProfilesController < ApplicationController
     @broker_role = current_user.person.broker_role || nil
     @general_agency_profiles = GeneralAgencyProfile.all_by_broker_role(@broker_role)
 
-    respond_to do |format|
-       format.js
-       format.json
+   # respond_to do |format|
+   #    format.js
+   #    format.json
+   # end
+  end
+
+def employers_api
+  print "BORKER", @broker_agency_profile.legal_name
+
+    if current_user.has_broker_agency_staff_role? || current_user.has_hbx_staff_role?
+      @orgs = Organization.by_broker_agency_profile(@broker_agency_profile._id)
+    else
+      broker_role_id = current_user.person.broker_role.id
+      @orgs = Organization.by_broker_role(broker_role_id)
     end
+
+    @page_alphabets = page_alphabets(@orgs, "legal_name")
+    page_no = cur_page_no(@page_alphabets.first)
+    @organizations = @orgs #.where("legal_name" => /^#{page_no}/i)
+    @employer_profiles = @organizations.map {|o| o.employer_profile}
+
+    @broker_role = current_user.person.broker_role || nil
+    @general_agency_profiles = GeneralAgencyProfile.all_by_broker_role(@broker_role)
+
+##employer_profile next_premium_due_on might be useful
+
+    @employer_details = @employer_profiles.map { |er| 
+        current_plan_year = er.show_plan_year
+        enrollments = er.enrollments_for_billing
+ 
+
+      # p er.show_plan_year.is_published?
+      # p er.show_plan_year.is_renewing?
+      #  binding.pry
+
+        premium_amt_total   = enrollments.map(&:total_premium).sum
+        employee_cost_total = enrollments.map(&:total_employee_cost).sum
+        employer_contribution_total = enrollments.map(&:total_employer_contribution).sum
+        result = { 
+          :profile => er,
+          :total_premium => premium_amt_total,
+          :employee_contribution => employee_cost_total,
+          :employer_contribution => employer_contribution_total,
+          :emails => Person.staff_for_employer_including_pending(er).map { |staff| staff.work_email_or_best } || []
+        }
+    }
+
+
+    #@current_plan_year = @employer_profile.show_plan_year
+    #    enrollments = @employer_profile.enrollments_for_billing
+    ##    
+    #    @premium_amt_total   = enrollments.map(&:total_premium).sum
+    #    @employee_cost_total = enrollments.map(&:total_employee_cost).sum
+    #    @employer_contribution_total = enrollments.map(&:total_employer_contribution).sum
+
+
+    #respond_to do |format|
+    #   format.json
+    #end
   end
 
   def general_agency_index
@@ -244,6 +299,7 @@ class BrokerAgencies::ProfilesController < ApplicationController
   end
 
   def find_broker_agency_profile
+    print "*********************"
     @broker_agency_profile = BrokerAgencyProfile.find(params[:id])
   end
 
