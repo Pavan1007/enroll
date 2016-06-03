@@ -18,7 +18,7 @@
 	"renewal_in_progress": "<%= er.show_plan_year.is_renewing? %>",
 	<% end %>
 	"renewal_applicable_available": "<%= er.show_plan_year.due_date_for_publish %>",
-	"renewal_application_due": "",
+	"renewal_application_due": "<%= er.show_plan_year.due_date_for_publish %>",
 
 	"binder_payment_due": "",
 	"employees_total": "<%= er.roster_size %>",

@@ -175,7 +175,6 @@ def employers_api
         current_plan_year = er.show_plan_year
         enrollments = er.enrollments_for_billing
  
-
       # p er.show_plan_year.is_published?
       # p er.show_plan_year.is_renewing?
       #  binding.pry
