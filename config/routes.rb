@@ -293,6 +293,7 @@ Rails.application.routes.draw do
         get :employers
         get :families
         get :staffs
+	foo
       end
     end
     resources :inboxes, only: [:new, :create, :show, :destroy] do
